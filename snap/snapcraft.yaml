@@ -18,64 +18,20 @@ apps:
     command: bin/gitjournal
     extensions: [gnome]
     plugs:
+    - desktop-launch
     - network
+    - network-manager
     - home
+    - ssh-keys
     slots:
       - dbus-gitjournal
 
 parts:
-  flutter-git:
-    source: https://github.com/flutter/flutter.git
-    source-branch: stable
-    source-depth: 1
-    plugin: nil
-    override-build: |
-      mkdir -p $CRAFT_PART_INSTALL/usr/bin
-      mkdir -p $CRAFT_PART_INSTALL/usr/libexec
-      cp -r $CRAFT_PART_SRC $CRAFT_PART_INSTALL/usr/libexec/flutter
-      ln -s $CRAFT_PART_INSTALL/usr/libexec/flutter/bin/flutter $CRAFT_PART_INSTALL/usr/bin/flutter
-    build-packages:
-      - clang
-      - cmake
-      - curl
-      - libgtk-3-dev
-      - ninja-build
-      - unzip
-      - xz-utils
-      - zip
-    prime:
-      - -*
-
   gitjournal:
-    after: [ flutter-git ]
     source: .
-    plugin: nil
-    override-build: |
-      set -eux
-      which flutter
-      echo $PATH
-      flutter channel stable
-      flutter upgrade
-      flutter precache --linux
-      flutter doctor
-      flutter clean
-      flutter pub get
-      flutter build linux -v
-      mkdir -p $CRAFT_PART_INSTALL/bin/
-      cp -r build/linux/*/release/bundle/* $CRAFT_PART_INSTALL/bin/
-    build-environment:
-      - PATH: /root/.pub-cache/bin/:$PATH
+    plugin: flutter
     stage-packages:
       - git
-      - ssh
-
-  # Zenity is required by the flutter_file_picker plugin.
-  # Integrate custom dialogs in your snap - doc - snapcraft.io
-  # https://forum.snapcraft.io/t/integrate-custom-dialogs-in-your-snap/10825
-  zenity:
-    plugin: nil
-    stage-packages:
+      - openssh-client
       - zenity
-    prime:
-      - usr/bin/zenity
-      - usr/share/zenity/*
+
